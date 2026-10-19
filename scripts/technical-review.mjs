@@ -3,7 +3,6 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 
-export const repository = "TTCS-T926-K19C5-N2/thudemo";
 export const context = "Review / technical-review";
 export const dimensions = [
   "requirements",
@@ -22,6 +21,15 @@ const detail = (value) =>
 const requireThat = (condition, message) => {
   if (!condition) throw new Error(message);
 };
+export function resolveRepository(value = process.env.TECHNICAL_REVIEW_REPOSITORY) {
+  const selected = value || "TTCS-T926-K19C5-N2/thudemo";
+  requireThat(
+    /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(selected),
+    "Invalid repository identifier",
+  );
+  return selected;
+}
+export const repository = resolveRepository();
 const digest = (value) => createHash("sha256").update(value).digest("hex");
 const run = (command, args) =>
   execFileSync(command, args, { encoding: "utf8", maxBuffer: 30_000_000 });

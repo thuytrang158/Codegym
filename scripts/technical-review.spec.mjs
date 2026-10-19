@@ -1,7 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { validateReview, repository, dimensions } from "./technical-review.mjs";
+import {
+  validateReview,
+  repository,
+  dimensions,
+  resolveRepository,
+} from "./technical-review.mjs";
+
+test("repository override is constrained to owner/repository identifiers", () => {
+  assert.equal(resolveRepository("thuytrang158/Codegym"), "thuytrang158/Codegym");
+  assert.equal(resolveRepository(""), "TTCS-T926-K19C5-N2/thudemo");
+  assert.throws(() => resolveRepository("https://github.com/thuytrang158/Codegym"), /Invalid repository/);
+});
 
 function fixture() {
   const candidate = {
