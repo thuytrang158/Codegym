@@ -278,11 +278,15 @@ async function main() {
         performance.priceTiers.map((tier) => [tier.sectionId, tier.priceVND]),
       );
       const showDate = new Date(performance.startAt);
-      if (Number.isNaN(showDate.getTime()) || performance.isPubliclyBookable !== false) {
+      if (
+        Number.isNaN(showDate.getTime()) ||
+        performance.isRealEventSchedule !== false ||
+        performance.realtimeAvailabilityConfirmed !== false ||
+        performance.bookingEnabled !== false ||
+        performance.sourceType !== 'synthetic_demo' ||
+        performance.status !== 'simulation_only'
+      ) {
         throw new Error(`Suất demo không hợp lệ hoặc không được đánh dấu không thể đặt: ${performance.id}`);
-      }
-      if (performance.bookingEnabled !== false || performance.publicVisibility !== 'development_only') {
-        throw new Error(`Suất demo không được cấu hình riêng cho development: ${performance.id}`);
       }
       const existingPerformance = await prisma.showtime.findFirst({
         where: { eventId: event.id, startTime: showDate },
