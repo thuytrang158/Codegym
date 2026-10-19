@@ -9,11 +9,9 @@ const { PrismaPg } = require('../apps/api/node_modules/@prisma/adapter-pg');
 const Redis = require('../apps/api/node_modules/ioredis');
 
 const root = resolve(import.meta.dirname, '..');
-const jsonPath = process.env.EVENT_DATA_PATH || resolve(
-  root,
-  '..',
-  'su_kien_nha_hat_chuyen_nghiep_chi_tiet_2026.json',
-);
+const jsonPath = process.env.EVENT_DATA_PATH
+  ? resolve(root, process.env.EVENT_DATA_PATH)
+  : resolve(root, 'su_kien_kich_cheo_thinh_phong_du_lieu_tham_khao.json');
 
 const databaseUrl =
   process.env.DATABASE_URL ||
@@ -197,9 +195,14 @@ async function main() {
   }
 
   // 1. Identify Organizer account
+  const organizerEmails = [
+    process.env.EVENT_ORGANIZER_EMAIL,
+    'design-organizer@example.invalid',
+    'organizer@demo.invalid',
+  ].filter(Boolean);
   const organizer = await prisma.user.findFirst({
     where: {
-      email: { in: ['design-organizer@example.invalid', 'organizer@demo.invalid'] },
+      email: { in: organizerEmails },
     },
     orderBy: { createdAt: 'asc' },
   });
@@ -210,7 +213,7 @@ async function main() {
   console.log(`👤 Sử dụng tài khoản người tổ chức: ${organizer.email} (${organizer.id})`);
   const demoOrganizers = await prisma.user.findMany({
     where: {
-      email: { in: ['design-organizer@example.invalid', 'organizer@demo.invalid'] },
+      email: { in: organizerEmails },
     },
     select: { id: true },
   });

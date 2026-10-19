@@ -68,7 +68,7 @@ function fingerprint() {
   for (const path of [...files]
     .filter(
       (path) =>
-        /^(apps\/(api|web)\/|packages\/shared\/|scripts\/sprint1-onboarding|pnpm-lock.yaml$|package.json$)/.test(
+        /^(apps\/(api|web)\/|packages\/shared\/|scripts\/(sprint1-onboarding|import-real-productions)(?:[./]|$)|su_kien_kich_cheo_thinh_phong_du_lieu_tham_khao\.json$|pnpm-lock.yaml$|package.json$)/.test(
           path,
         ) &&
         !path.startsWith("apps/web/.next/") &&
@@ -488,6 +488,15 @@ try {
       env,
     );
     runLog("seed", "node apps/api/scripts/seed-sprint1-onboarding.mjs", env);
+    const eventOrganizer = config.accounts.find(
+      (account) => account.name === "organizer-a",
+    );
+    if (!eventOrganizer) fail("Catalog organizer fixture is missing");
+    runLog(
+      "event-catalog",
+      "node --env-file=.env scripts/import-real-productions.mjs",
+      { ...env, EVENT_ORGANIZER_EMAIL: eventOrganizer.email },
+    );
     runLog("build", "corepack pnpm build", { ...env, NODE_ENV: "production" });
   } else
     console.log(
