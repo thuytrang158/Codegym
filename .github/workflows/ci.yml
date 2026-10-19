@@ -130,6 +130,11 @@ jobs:
         run: node --test apps/api/scripts/render-staging-target.spec.mjs
       - name: API integration test
         run: pnpm --filter api run test:e2e
+      - name: Verify reproducible local setup and event seed
+        env:
+          DEMO_ADMIN_PASSWORD: ci-local-admin-password-123
+          DEMO_ORGANIZER_PASSWORD: ci-local-organizer-password-123
+        run: pnpm setup:local
 
   candidate-research:
     name: K-01 / candidate-research

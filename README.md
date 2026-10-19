@@ -33,7 +33,7 @@ Entrypoint đã kiểm clone sạch02a thực tế; source ứng dụng/launcher
 powershell.exe -NoProfile -File .\scripts\sprint1-demo.ps1
 ```
 
-Lệnh chọn cổng trống, tạo profile/secret riêng theo đường dẫn checkout, chạy PostgreSQL15/Redis7/Mailpit, frozen install, Prisma generate/migrate, seed giả, build, start, health và login/logout smoke. Chỉ in `READY` sau khi smoke thành công. Địa chỉ thực tế được in ở cuối (ưu tiên web3000/API3001); không mặc định cổng nếu máy đã bận. Credentials nằm tại `.sprint1-demo/config.json`, bị Git ignore; không gửi file này lên PR/chat. Nếu clone đã có `.env` của môi trường khác, launcher từ chối ghi đè: dùng clone riêng.
+Lệnh chọn cổng trống, tạo profile/secret riêng theo đường dẫn checkout, chạy PostgreSQL15/Redis7/Mailpit, frozen install, Prisma generate/migrate, tạo tài khoản local, nạp catalog sự kiện cùng 12 suất và sơ đồ ghế từ JSON đã theo dõi trong repository, build, start, health và login/logout smoke. Chỉ in `READY` sau khi smoke thành công. Địa chỉ thực tế được in ở cuối (ưu tiên web3000/API3001); không mặc định cổng nếu máy đã bận. Credentials nằm tại `.sprint1-demo/config.json`, bị Git ignore; clone khác tạo password local mới, không dùng chung password cá nhân. Nếu clone đã có `.env` của môi trường khác, launcher từ chối ghi đè: dùng clone riêng.
 
 Mở `/register`, nhập tên/email giả và mật khẩu thử >=8ký tự, đọc thông báo và tự chọn consent. Xem thư ở địa chỉ **mail-catcher** được in, mở liên kết kích hoạt, đặt mật khẩu cuối cùng (có thể dùng lại mật khẩu vừa chọn) rồi đăng nhập. Mailpit là hộp nhận thử loopback, **không chứng minh thư Internet**. Hai organizer/admin/buyer/lock-test có sẵn trong credentials local; không dùng tài khoản chính cho thử khóa.
 
@@ -77,11 +77,10 @@ Nếu đã có volume PostgreSQL từ lần chạy trước, đổi `POSTGRES_US
 ```powershell
 docker compose up -d --wait postgres redis
 pnpm install --frozen-lockfile
-pnpm --filter api exec prisma migrate deploy
-pnpm --filter api exec prisma generate
+pnpm setup:local
 ```
 
-`--wait` chỉ hoàn tất khi PostgreSQL và Redis đạt healthcheck. Lệnh migration dùng lịch sử Prisma trong repository; chạy lại sẽ báo không có migration chờ nếu database đã cập nhật. Checkout tích hợp hiện có 30 migration, gồm User/Role/Event/Showtime và các module sprint sau. Ba migration probe của T-01 là mẫu apply → migration bù → tái áp dụng; không có nghĩa schema hiện tại chỉ còn scaffold. Không dùng `prisma db push` hoặc reset database thay cho migration.
+`--wait` chỉ hoàn tất khi PostgreSQL và Redis đạt healthcheck. `pnpm setup:local` xác nhận database là local trước khi chạy migration, generate Prisma, tạo tài khoản local từ mật khẩu trong `.env` và nạp catalog cùng suất diễn từ JSON trong repository. Có thể chạy lại; lệnh không reset database hay tạo trùng suất. Mật khẩu tài khoản local theo `.env`. Không dùng `prisma db push` hoặc reset database thay cho migration. Tài khoản đăng nhập và dữ liệu mẫu này chỉ dành cho môi trường local.
 
 ## 4. Chạy API và web
 

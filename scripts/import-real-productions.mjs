@@ -9,11 +9,9 @@ const { PrismaPg } = require('../apps/api/node_modules/@prisma/adapter-pg');
 const Redis = require('../apps/api/node_modules/ioredis');
 
 const root = resolve(import.meta.dirname, '..');
-const jsonPath = process.env.EVENT_DATA_PATH || resolve(
-  root,
-  '..',
-  'su_kien_nha_hat_chuyen_nghiep_chi_tiet_2026.json',
-);
+const jsonPath = process.env.EVENT_DATA_PATH
+  ? resolve(root, process.env.EVENT_DATA_PATH)
+  : resolve(root, 'su_kien_kich_cheo_thinh_phong_du_lieu_tham_khao.json');
 
 const databaseUrl =
   process.env.DATABASE_URL ||
@@ -197,9 +195,14 @@ async function main() {
   }
 
   // 1. Identify Organizer account
+  const organizerEmails = [
+    process.env.EVENT_ORGANIZER_EMAIL,
+    'design-organizer@example.invalid',
+    'organizer@demo.invalid',
+  ].filter(Boolean);
   const organizer = await prisma.user.findFirst({
     where: {
-      email: { in: ['design-organizer@example.invalid', 'organizer@demo.invalid'] },
+      email: { in: organizerEmails },
     },
     orderBy: { createdAt: 'asc' },
   });
@@ -210,7 +213,7 @@ async function main() {
   console.log(`👤 Sử dụng tài khoản người tổ chức: ${organizer.email} (${organizer.id})`);
   const demoOrganizers = await prisma.user.findMany({
     where: {
-      email: { in: ['design-organizer@example.invalid', 'organizer@demo.invalid'] },
+      email: { in: organizerEmails },
     },
     select: { id: true },
   });
@@ -275,11 +278,15 @@ async function main() {
         performance.priceTiers.map((tier) => [tier.sectionId, tier.priceVND]),
       );
       const showDate = new Date(performance.startAt);
-      if (Number.isNaN(showDate.getTime()) || performance.isPubliclyBookable !== false) {
+      if (
+        Number.isNaN(showDate.getTime()) ||
+        performance.isRealEventSchedule !== false ||
+        performance.realtimeAvailabilityConfirmed !== false ||
+        performance.bookingEnabled !== false ||
+        performance.sourceType !== 'synthetic_demo' ||
+        performance.status !== 'simulation_only'
+      ) {
         throw new Error(`Suất demo không hợp lệ hoặc không được đánh dấu không thể đặt: ${performance.id}`);
-      }
-      if (performance.bookingEnabled !== false || performance.publicVisibility !== 'development_only') {
-        throw new Error(`Suất demo không được cấu hình riêng cho development: ${performance.id}`);
       }
       const existingPerformance = await prisma.showtime.findFirst({
         where: { eventId: event.id, startTime: showDate },
